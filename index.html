@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Bank — Donate & Save Lives</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red-50:  #fef2f2; --red-100: #fee2e2; --red-200: #fecaca;
+      --red-500: #ef4444; --red-600: #dc2626; --red-700: #b91c1c;
+      --red-800: #991b1b; --red-900: #7f1d1d;
+      --gray-50:  #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+      --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+      --gray-900: #111827;
+      --white: #ffffff;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --radius: 10px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+      --shadow: 0 4px 12px rgba(0,0,0,.08);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,.12);
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Navigation ───────────────────────────────────────── */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--red-700);
+      text-decoration: none;
+    }
+    .logo svg { width: 28px; height: 28px; fill: var(--red-600); }
+    .nav-links { display: flex; gap: .25rem; }
+    .nav-links button {
+      background: none; border: none; font: inherit;
+      padding: .5rem 1rem; border-radius: var(--radius);
+      color: var(--gray-600); cursor: pointer;
+      font-weight: 500; transition: all .15s;
+    }
+    .nav-links button:hover { background: var(--gray-100); color: var(--gray-800); }
+    .nav-links button.active { background: var(--red-50); color: var(--red-700); }
+
+    /* ── Page Container ───────────────────────────────────── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Hero / Dashboard ─────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+    }
+    .hero h1 {
+      font-size: 2.25rem;
+      color: var(--gray-900);
+      margin-bottom: .5rem;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--gray-500);
+      max-width: 520px;
+      margin: 0 auto 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    .stat-card .number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--red-600);
+    }
+    .stat-card .label {
+      font-size: .85rem;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-top: .25rem;
+    }
+
+    /* ── Blood Group Badges ───────────────────────────────── */
+    .blood-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .blood-badge {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 1.25rem .5rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform .15s;
+    }
+    .blood-badge:hover { transform: translateY(-2px); }
+    .blood-badge .group {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--red-600);
+    }
+    .blood-badge .count {
+      font-size: .85rem;
+      color: var(--gray-500);
+      margin-top: .15rem;
+    }
+
+    /* ── Section Headers ──────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .section-header h2 {
+      font-size: 1.35rem;
+      color: var(--gray-900);
+    }
+
+    /* ── Forms ─────────────────────────────────────────────── */
+    .form-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .form-card h2 {
+      margin-bottom: 1.5rem;
+      color: var(--gray-900);
+      font-size: 1.35rem;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: .35rem;
+      color: var(--gray-700);
+      font-size: .9rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: .65rem .85rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      font: inherit;
+      font-size: .95rem;
+      color: var(--gray-800);
+      background: var(--white);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--red-500);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.15);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .65rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      font-size: .95rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-primary {
+      background: var(--red-600);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--red-700); }
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+    .btn-secondary:hover { background: var(--gray-200); }
+    .btn-danger {
+      background: var(--red-100);
+      color: var(--red-700);
+      padding: .4rem .75rem;
+      font-size: .85rem;
+    }
+    .btn-danger:hover { background: var(--red-200); }
+
+    /* ── Table ─────────────────────────────────────────────── */
+    .table-wrapper {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead { background: var(--gray-50); }
+    th {
+      padding: .75rem 1rem;
+      text-align: left;
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--gray-500);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    td {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: .93rem;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--gray-50); }
+
+    .badge {
+      display: inline-block;
+      padding: .15rem .6rem;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .badge-blood {
+      background: var(--red-100);
+      color: var(--red-700);
+    }
+    .badge-status {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* ── Search / Filter Bar ──────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .toolbar input,
+    .toolbar select {
+      padding: .55rem .85rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      font: inherit;
+      font-size: .9rem;
+      background: var(--white);
+    }
+    .toolbar input { flex: 1; min-width: 200px; }
+    .toolbar input:focus,
+    .toolbar select:focus {
+      outline: none;
+      border-color: var(--red-500);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.15);
+    }
+
+    /* ── Empty State ───────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--gray-400);
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: .75rem; opacity: .5; }
+    .empty-state p { font-size: .95rem; }
+
+    /* ── Toast ─────────────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 1.5rem;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .toast {
+      background: var(--gray-800);
+      color: var(--white);
+      padding: .75rem 1.25rem;
+      border-radius: 8px;
+      font-size: .9rem;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn .25s ease-out, fadeOut .3s ease-in 2.5s forwards;
+      max-width: 340px;
+    }
+    .toast.success { background: #065f46; }
+    .toast.error { background: var(--red-700); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(30px); }
+    }
+
+    /* ── Request Card ─────────────────────────────────────── */
+    .request-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .request-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .request-card .req-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+    .request-card .req-header h3 {
+      font-size: 1rem;
+      color: var(--gray-800);
+    }
+    .request-card .req-detail {
+      font-size: .88rem;
+      color: var(--gray-500);
+      margin-bottom: .25rem;
+    }
+    .request-card .req-actions {
+      margin-top: .75rem;
+      display: flex;
+      gap: .5rem;
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .nav-inner { padding: 0; }
+      .nav-links button { padding: .5rem .6rem; font-size: .85rem; }
+      main { padding: 1rem; }
+      .hero h1 { font-size: 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      table { font-size: .85rem; }
+      th, td { padding: .6rem .5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo" onclick="switchPage('dashboard')">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      Blood Bank
+    </a>
+    <div class="nav-links">
+      <button class="active" onclick="switchPage('dashboard')">Dashboard</button>
+      <button onclick="switchPage('register')">Register Donor</button>
+      <button onclick="switchPage('donors')">Donors</button>
+      <button onclick="switchPage('requests')">Blood Requests</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Toast Container ─────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<main>
+
+  <!-- ── Dashboard ───────────────────────────────────────── -->
+  <div id="page-dashboard" class="page active">
+    <div class="hero">
+      <h1>Every Drop Counts 🩸</h1>
+      <p>Track donors, manage blood requests, and help save lives — all in one place.</p>
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="section-header">
+      <h2>Blood Group Availability</h2>
+    </div>
+    <div class="blood-grid" id="bloodGrid"></div>
+  </div>
+
+  <!-- ── Register Donor ──────────────────────────────────── -->
+  <div id="page-register" class="page">
+    <div class="form-card">
+      <h2>Register New Donor</h2>
+      <form id="donorForm" onsubmit="registerDonor(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="donorName">Full Name *</label>
+            <input id="donorName" type="text" required placeholder="e.g. Alex Johnson" />
+          </div>
+          <div class="form-group">
+            <label for="donorAge">Age *</label>
+            <input id="donorAge" type="number" min="18" max="65" required placeholder="18–65" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="donorBlood">Blood Group *</label>
+            <select id="donorBlood" required>
+              <option value="">Select group</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="donorPhone">Phone *</label>
+            <input id="donorPhone" type="tel" required placeholder="01XXXXXXXXX" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="donorEmail">Email</label>
+          <input id="donorEmail" type="email" placeholder="alex@example.com" />
+        </div>
+        <div class="form-group">
+          <label for="donorAddress">Address</label>
+          <textarea id="donorAddress" rows="2" placeholder="City, Area..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="donorLastDonation">Last Donation Date</label>
+          <input id="donorLastDonation" type="date" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
+          ✓ Register Donor
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Donor List ──────────────────────────────────────── -->
+  <div id="page-donors" class="page">
+    <div class="section-header">
+      <h2>All Donors</h2>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="donorSearch" placeholder="Search by name or phone..." oninput="renderDonors()" />
+      <select id="donorFilter" onchange="renderDonors()">
+        <option value="">All Blood Groups</option>
+        <option>A+</option><option>A-</option>
+        <option>B+</option><option>B-</option>
+        <option>AB+</option><option>AB-</option>
+        <option>O+</option><option>O-</option>
+      </select>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Blood</th>
+            <th>Age</th>
+            <th>Phone</th>
+            <th>Last Donation</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="donorTableBody"></tbody>
+      </table>
+    </div>
+    <div id="donorEmpty" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      <p>No donors found. Register one to get started!</p>
+    </div>
+  </div>
+
+  <!-- ── Blood Requests ──────────────────────────────────── -->
+  <div id="page-requests" class="page">
+    <div class="section-header">
+      <h2>Blood Requests</h2>
+      <button class="btn btn-primary" onclick="toggleRequestForm()">+ New Request</button>
+    </div>
+
+    <!-- New Request Form (hidden by default) -->
+    <div id="requestFormWrapper" class="form-card" style="display:none; margin-bottom:1.5rem;">
+      <h2>Create Blood Request</h2>
+      <form id="requestForm" onsubmit="createRequest(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reqPatient">Patient Name *</label>
+            <input id="reqPatient" type="text" required placeholder="Patient name" />
+          </div>
+          <div class="form-group">
+            <label for="reqBlood">Blood Group Needed *</label>
+            <select id="reqBlood" required>
+              <option value="">Select group</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reqUnits">Units Required *</label>
+            <input id="reqUnits" type="number" min="1" max="20" required placeholder="1–20" />
+          </div>
+          <div class="form-group">
+            <label for="reqHospital">Hospital *</label>
+            <input id="reqHospital" type="text" required placeholder="Hospital name" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reqContact">Contact Number *</label>
+          <input id="reqContact" type="tel" required placeholder="01XXXXXXXXX" />
+        </div>
+        <div class="form-group">
+          <label for="reqNotes">Notes</label>
+          <textarea id="reqNotes" rows="2" placeholder="Urgency, special requirements..."></textarea>
+        </div>
+        <div style="display:flex; gap:.75rem;">
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+          <button type="button" class="btn btn-secondary" onclick="toggleRequestForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="requestCards" class="request-cards"></div>
+    <div id="requestEmpty" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/></svg>
+      <p>No blood requests yet. Click "+ New Request" to create one.</p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── Data Layer (localStorage) ─────────────────────────────
+const DONORS_KEY = 'bloodbank_donors';
+const REQUESTS_KEY = 'bloodbank_requests';
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+function getDonors() {
+  return JSON.parse(localStorage.getItem(DONORS_KEY) || '[]');
+}
+function saveDonors(donors) {
+  localStorage.setItem(DONORS_KEY, JSON.stringify(donors));
+}
+function getRequests() {
+  return JSON.parse(localStorage.getItem(REQUESTS_KEY) || '[]');
+}
+function saveRequests(requests) {
+  localStorage.setItem(REQUESTS_KEY, JSON.stringify(requests));
+}
+
+// ── Toast Notifications ───────────────────────────────────
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ── Page Navigation ───────────────────────────────────────
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+
+  document.querySelectorAll('.nav-links button').forEach((btn, i) => {
+    const pages = ['dashboard', 'register', 'donors', 'requests'];
+    btn.classList.toggle('active', pages[i] === page);
+  });
+
+  // Refresh data on page switch
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'donors') renderDonors();
+  if (page === 'requests') renderRequests();
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+function renderDashboard() {
+  const donors = getDonors();
+  const requests = getRequests();
+  const pending = requests.filter(r => r.status === 'pending').length;
+  const fulfilled = requests.filter(r => r.status === 'fulfilled').length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="number">${donors.length}</div>
+      <div class="label">Total Donors</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">${BLOOD_GROUPS.filter(g => donors.some(d => d.blood === g)).length}</div>
+      <div class="label">Groups Available</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">${pending}</div>
+      <div class="label">Pending Requests</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">${fulfilled}</div>
+      <div class="label">Fulfilled</div>
+    </div>
+  `;
+
+  const counts = {};
+  BLOOD_GROUPS.forEach(g => counts[g] = 0);
+  donors.forEach(d => { if (counts[d.blood] !== undefined) counts[d.blood]++; });
+
+  document.getElementById('bloodGrid').innerHTML = BLOOD_GROUPS.map(g => `
+    <div class="blood-badge">
+      <div class="group">${g}</div>
+      <div class="count">${counts[g]} donor${counts[g] !== 1 ? 's' : ''}</div>
+    </div>
+  `).join('');
+}
+
+// ── Register Donor ────────────────────────────────────────
+function registerDonor(e) {
+  e.preventDefault();
+
+  const donor = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name: document.getElementById('donorName').value.trim(),
+    age: parseInt(document.getElementById('donorAge').value),
+    blood: document.getElementById('donorBlood').value,
+    phone: document.getElementById('donorPhone').value.trim(),
+    email: document.getElementById('donorEmail').value.trim(),
+    address: document.getElementById('donorAddress').value.trim(),
+    lastDonation: document.getElementById('donorLastDonation').value,
+    registeredAt: new Date().toISOString(),
+  };
+
+  const donors = getDonors();
+  donors.unshift(donor);
+  saveDonors(donors);
+
+  document.getElementById('donorForm').reset();
+  showToast(`${donor.name} registered successfully!`);
+  switchPage('donors');
+}
+
+// ── Donor List ────────────────────────────────────────────
+function renderDonors() {
+  const donors = getDonors();
+  const search = (document.getElementById('donorSearch')?.value || '').toLowerCase();
+  const filter = document.getElementById('donorFilter')?.value || '';
+
+  const filtered = donors.filter(d => {
+    const matchSearch = !search || d.name.toLowerCase().includes(search) || d.phone.includes(search);
+    const matchFilter = !filter || d.blood === filter;
+    return matchSearch && matchFilter;
+  });
+
+  const tbody = document.getElementById('donorTableBody');
+  const empty = document.getElementById('donorEmpty');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(d => `
+    <tr>
+      <td>
+        <strong>${escapeHtml(d.name)}</strong>
+        ${d.email ? `<br><span style="color:var(--gray-400);font-size:.82rem;">${escapeHtml(d.email)}</span>` : ''}
+      </td>
+      <td><span class="badge badge-blood">${d.blood}</span></td>
+      <td>${d.age}</td>
+      <td>${escapeHtml(d.phone)}</td>
+      <td>${d.lastDonation ? formatDate(d.lastDonation) : '—'}</td>
+      <td>
+        <button class="btn btn-danger" onclick="deleteDonor('${d.id}')">Remove</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteDonor(id) {
+  if (!confirm('Remove this donor from the registry?')) return;
+  const donors = getDonors().filter(d => d.id !== id);
+  saveDonors(donors);
+  renderDonors();
+  showToast('Donor removed', 'error');
+}
+
+// ── Blood Requests ────────────────────────────────────────
+function toggleRequestForm() {
+  const wrapper = document.getElementById('requestFormWrapper');
+  wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
+}
+
+function createRequest(e) {
+  e.preventDefault();
+
+  const request = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    patient: document.getElementById('reqPatient').value.trim(),
+    blood: document.getElementById('reqBlood').value,
+    units: parseInt(document.getElementById('reqUnits').value),
+    hospital: document.getElementById('reqHospital').value.trim(),
+    contact: document.getElementById('reqContact').value.trim(),
+    notes: document.getElementById('reqNotes').value.trim(),
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  };
+
+  const requests = getRequests();
+  requests.unshift(request);
+  saveRequests(requests);
+
+  document.getElementById('requestForm').reset();
+  document.getElementById('requestFormWrapper').style.display = 'none';
+  showToast('Blood request created!');
+  renderRequests();
+}
+
+function renderRequests() {
+  const requests = getRequests();
+  const container = document.getElementById('requestCards');
+  const empty = document.getElementById('requestEmpty');
+
+  if (requests.length === 0) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  container.innerHTML = requests.map(r => `
+    <div class="request-card">
+      <div class="req-header">
+        <h3>${escapeHtml(r.patient)}</h3>
+        <span class="badge ${r.status === 'pending' ? 'badge-pending' : 'badge-status'}">
+          ${r.status === 'pending' ? '⏳ Pending' : '✓ Fulfilled'}
+        </span>
+      </div>
+      <div class="req-detail">🩸 <strong>${r.blood}</strong> — ${r.units} unit${r.units > 1 ? 's' : ''}</div>
+      <div class="req-detail">🏥 ${escapeHtml(r.hospital)}</div>
+      <div class="req-detail">📞 ${escapeHtml(r.contact)}</div>
+      ${r.notes ? `<div class="req-detail" style="margin-top:.5rem;color:var(--gray-600);font-style:italic;">"${escapeHtml(r.notes)}"</div>` : ''}
+      <div style="font-size:.78rem;color:var(--gray-400);margin-top:.5rem;">${formatDate(r.createdAt)}</div>
+      <div class="req-actions">
+        ${r.status === 'pending' ? `<button class="btn btn-primary" style="font-size:.85rem;padding:.4rem .85rem;" onclick="fulfillRequest('${r.id}')">Mark Fulfilled</button>` : ''}
+        <button class="btn btn-danger" onclick="deleteRequest('${r.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function fulfillRequest(id) {
+  const requests = getRequests();
+  const req = requests.find(r => r.id === id);
+  if (req) {
+    req.status = 'fulfilled';
+    saveRequests(requests);
+    renderRequests();
+    showToast(`Request for ${req.patient} marked as fulfilled!`);
+  }
+}
+
+function deleteRequest(id) {
+  if (!confirm('Delete this blood request?')) return;
+  const requests = getRequests().filter(r => r.id !== id);
+  saveRequests(requests);
+  renderRequests();
+  showToast('Request deleted', 'error');
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// ── Init ──────────────────────────────────────────────────
+renderDashboard();
+</script>
+
+</body>
+</html>
